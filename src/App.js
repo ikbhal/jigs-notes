@@ -1,5 +1,9 @@
 import './App.css';
 import { useEffect, useState , useRef} from 'react'; 
+import { db } from './firebase.js';
+// import { collection, onSnapshot } from 'firebase/firestore';
+
+import {collection,doc, onSnapshot, addDoc, updateDoc ,Timestamp} from 'firebase/firestore'
 
 function NoteTab({id, title, changeNote, deleteNote}){
   return (
@@ -42,9 +46,12 @@ function Settings(){
 
 }
 function App() {
-  var [notes,setNotes] =useState([{id: 1, text:'', title: 'note 1'}]);
+  // var [notes,setNotes] =useState([{id: 1, text:'', title: 'note 1'}]);
+  var [notes,setNotes] =useState([]);
   // var [currentNoteId, setCurrentNoteId] = useState(0);
-  var [currentNote, setCurrentNote] = useState({id:1, text:'', title: 'note 1'});
+  // var [currentNote, setCurrentNote] = useState({id:1, text:'', title: 'note 1'});
+  var [currentNote, setCurrentNote] = useState({});
+  var [isLoading, setLoading] = useState(true);
   var lastNoteId = useRef(1);
 
   useEffect(()=>{
@@ -54,20 +61,44 @@ function App() {
     //   console.log("key:", e.key,", event:",e);
     //   e.preventDefault();
     // });
+
+    setLoading(true);
+    onSnapshot(collection(db, 'jigs-notes'), (snapshot) => {
+      var note = {};
+      setNotes(snapshot.docs.map(doc => {
+        var d = doc.data();
+        d.id = doc.id;
+        note = {...doc, id: d.id};
+        return d;
+      }));
+      // var note = notes[notes.length-1];
+      setCurrentNote({id:note.id, title: note.title||'untitled', text: note.text|'' });
+      setLoading(false);
+    })
   },[]);
 
   
   const addNote=()=>{
     var noteId = lastNoteId.current+1;
     lastNoteId.current = lastNoteId.current + 1;
+    
     var note = {
-      id:  noteId,
+      // id:  noteId,
       title: `note ${noteId}`,
-      text: ''
+      text: '',
+      created: Timestamp.now()
     };
-
-    setNotes([...notes,note]);
-    setCurrentNote(note);
+    // savve to firebase jigs-notes collection
+    addDoc(collection(db, 'jigs-notes'), note)
+    .then(doc =>{
+      // debugger;
+      notes.id = doc.id;
+  
+      setNotes([...notes,note]);
+      setCurrentNote({...note});
+      console.log("doc:",doc);
+    })
+    .catch(err=>console.error(err));
   };
 
   var [showNoteSelect, setShowNoteSelect] = useState(false);
@@ -77,10 +108,11 @@ function App() {
   }
 
   const handleSaveNote = (id, text) =>{
+    // debugger;
     console.log("inside handleSaveNote id:", id , ";text:", text);
 
     // notes state
-    // debugger;
+    debugger;
     var oldNotes = [...notes];
     var note = oldNotes.find(n => n.id == id);
     if(note){
@@ -90,6 +122,18 @@ function App() {
       // change current note 
       var newCurrentNote = {text: text, id: id};
       setCurrentNote(newCurrentNote);
+
+      // save to firebase
+      // var firebaseId = note.id ; // for testing only, change later todo
+      const noteDocRef = doc(db, 'jigs-notes', note.id)
+      try{
+        updateDoc(noteDocRef, {
+          text: text
+        })
+      
+      } catch (err) {
+        alert(err)
+      }    
     }
   }
 
@@ -156,12 +200,12 @@ function App() {
         {/* <p>current note.id : {currentNote.id}</p> */}
         {/* <p>current note text part: {currentNote.text ?currentNote.text.substring(0, 10):" empty"}</p> */}
         {/* <Note id={currentNote.id} textProp={currentNote.text} saveNote={handleSaveNote}/> */}
-        <textarea 
-          
-          onChange={e => handleSaveNote(currentNote.id, e.target.value)}
-          value={currentNote.text}>
-
-        </textarea>
+        {!isLoading && 
+          <textarea 
+            onChange={e => handleSaveNote(currentNote.id, e.target.value)}
+            value={currentNote.text}>
+          </textarea> 
+        }
       </div>
     </div>
   );
