@@ -37,6 +37,10 @@ function Note({id, textProp, saveNote}) {
   );
 }
 */
+
+function Settings(){
+
+}
 function App() {
   var [notes,setNotes] =useState([{id: 1, text:'', title: 'note 1'}]);
   // var [currentNoteId, setCurrentNoteId] = useState(0);
@@ -45,7 +49,13 @@ function App() {
 
   useEffect(()=>{
     // addNote(); // start with one note empty
+
+    // window.addEventListener('keypress', e => {
+    //   console.log("key:", e.key,", event:",e);
+    //   e.preventDefault();
+    // });
   },[]);
+
   
   const addNote=()=>{
     var noteId = lastNoteId.current+1;
@@ -104,8 +114,11 @@ function App() {
       }
     }
   }
+
+  
   return (
     <div className="App">
+  
       {/* <h1>jigs notes</h1> */}
       
       <button className="tab-menu" onClick={handleTabMenuClick}> { showNoteSelect ?'open': 'close'} </button>
