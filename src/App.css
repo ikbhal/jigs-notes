@@ -1,3 +1,16 @@
+/* *{
+  margin:0;
+  padding:0;
+}
+#root{
+  margin:0;
+  padding:0;
+}
+.App{
+  margin:0;
+  padding:0;
+} */
+
 .note-tab{
   border: 1px solid grey;
   padding: 2px;
@@ -7,7 +20,7 @@
 }
 
 .note-tab-list{
-  margin-top:20px;
+  /* margin-top:20px; */
 }
 
 #current-note{
@@ -15,17 +28,45 @@
 }
 
 .tab-menu{
-  position: fixed;
+  float:right;
+  /* position: fixed;
   top: 0;
   right: 0;
   margin-top: 135px;
-  margin-right: 20px;
+  margin-right: 20px; */
 }
 
 .tab-select{
-  position: fixed;
+  float: right;
+  /* position: fixed;
   top: 0;
   right:0;
   margin-top:135px;
-  margin-right: 100px;
+  margin-right: 100px; */
+}
+
+textarea{
+  width: 100%;
+  height: 500px;
+}
+
+.add-btn{
+  float:right;
+  /* position: fixed;
+  top:0;
+  margin-top: 135px;
+  margin-right: 0px; */
+}
+
+.note-tab-list{
+  width:'80%';
+  height:'35px';
+  overflow:'scroll';
+  float: left;
+}
+
+.tab-close{
+  padding: 1px;
+  /* border: 1px solid grey; */
+  font-weight: bold;
 }

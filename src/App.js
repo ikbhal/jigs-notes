@@ -1,17 +1,21 @@
 import './App.css';
-import { useEffect, useState } from 'react'; 
+import { useEffect, useState , useRef} from 'react'; 
 
-function NoteTab({id, title, changeNote}){
+function NoteTab({id, title, changeNote, deleteNote}){
   return (
     <span className="note-tab"
       onClick={e=>changeNote(id)}
       >
-      T: {title}
+      {title}
+
+      <span className="tab-close" onClick={e=> deleteNote(id)}>x</span>
     </span>
     
   );
 }
 
+/*
+not working
 function Note({id, textProp, saveNote}) {
 
   var [text,setText] = useState(textProp);
@@ -32,23 +36,25 @@ function Note({id, textProp, saveNote}) {
 
   );
 }
-
+*/
 function App() {
-  var [notes,setNotes] =useState([]);
+  var [notes,setNotes] =useState([{id: 1, text:'', title: 'note 1'}]);
   // var [currentNoteId, setCurrentNoteId] = useState(0);
-  var [currentNote, setCurrentNote] = useState({id:1, text:''});
+  var [currentNote, setCurrentNote] = useState({id:1, text:'', title: 'note 1'});
+  var lastNoteId = useRef(1);
 
   useEffect(()=>{
-    addNote(); // start with one note empty
+    // addNote(); // start with one note empty
   },[]);
   
   const addNote=()=>{
-    var noteId = notes.length+1;
+    var noteId = lastNoteId.current+1;
+    lastNoteId.current = lastNoteId.current + 1;
     var note = {
-      id:  notes.length+1,
+      id:  noteId,
       title: `note ${noteId}`,
       text: ''
-    }
+    };
 
     setNotes([...notes,note]);
     setCurrentNote(note);
@@ -72,7 +78,8 @@ function App() {
       setNotes([...oldNotes]);
 
       // change current note 
-      setCurrentNote(note => note.text = text);
+      var newCurrentNote = {text: text, id: id};
+      setCurrentNote(newCurrentNote);
     }
   }
 
@@ -84,26 +91,64 @@ function App() {
       setCurrentNote({id:note.id, text: note.text, title: note.title});
     }
   }
+
+  const deleteNote = (id)=>{
+    console.log("inside delete note id:", id);
+    var newNotes = notes.filter(n => n.id !=id);
+    setNotes([...newNotes]);
+    // check if delete note is current note then set current note next note 
+    if(currentNote.id  == id){
+      var note = notes.find(n => n.id >id);
+      if(note){
+        setCurrentNote({id: note.id, text: note.text});
+      }
+    }
+  }
   return (
     <div className="App">
-      <h1>jigs notes</h1>
-      <button onClick={addNote}>Add</button>
-      <div className="note-tab-list">
-        {
-          notes.map((n,i)=> <NoteTab key={i} id={n.id} title={n.title} changeNote={changeNote}/>)
-        }
-        <button className="tab-menu" onClick={handleTabMenuClick}> { showNoteSelect ?'open': 'close'} </button>
+      {/* <h1>jigs notes</h1> */}
+      
+      <button className="tab-menu" onClick={handleTabMenuClick}> { showNoteSelect ?'open': 'close'} </button>
+      {
+        !showNoteSelect && 
+        <select className="tab-select"
+          onChange={e=> changeNote(e.target.value)}
+          >
+          {notes.map((n,i) => 
+            <option key={i} 
+              value={n.id}
+              >
+              {n.title}
+            </option>)
+          }
+        </select>
+      }
+      <button  className="add-btn"
+        onClick={addNote}>
+        Add
+      </button>
 
+      <div className="note-tab-list" >
         {
-          !showNoteSelect && 
-          <select className="tab-select">
-            {notes.map((n,i) => <option key={i} value={n.id}>{n.title}</option>)}
-          </select>
+          notes.map((n,i)=> 
+            <NoteTab key={i} id={n.id} title={n.title} 
+              changeNote={changeNote}
+              deleteNote={deleteNote}/>
+          )
         }
+        
       </div>
 
       <div id="current-note">
-        <Note id={currentNote.id} textProp={currentNote.text} saveNote={handleSaveNote}/>
+        {/* <p>current note.id : {currentNote.id}</p> */}
+        {/* <p>current note text part: {currentNote.text ?currentNote.text.substring(0, 10):" empty"}</p> */}
+        {/* <Note id={currentNote.id} textProp={currentNote.text} saveNote={handleSaveNote}/> */}
+        <textarea 
+          
+          onChange={e => handleSaveNote(currentNote.id, e.target.value)}
+          value={currentNote.text}>
+
+        </textarea>
       </div>
     </div>
   );
